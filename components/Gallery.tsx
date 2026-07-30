@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import TerraceDivider from './TerraceDivider';
 import Reveal from './Reveal';
+import GalleryLightbox from './GalleryLightbox';
 import { useLanguage } from './LanguageProvider';
 
 const PHOTOS = [
@@ -18,6 +20,7 @@ const PHOTOS = [
 
 export default function Gallery() {
   const { t } = useLanguage();
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
     <section id="gallery" className="bg-limestone-50">
@@ -40,7 +43,12 @@ export default function Gallery() {
                 photo.tall ? 'row-span-2' : 'aspect-square'
               }`}
             >
-              <div className={`relative h-full w-full ${photo.tall ? 'aspect-auto min-h-[16rem]' : 'aspect-square'}`}>
+              <button
+                onClick={() => setOpenIndex(i)}
+                className={`relative block h-full w-full cursor-zoom-in ${
+                  photo.tall ? 'aspect-auto min-h-[16rem]' : 'aspect-square'
+                }`}
+              >
                 <Image
                   src={photo.src}
                   alt={photo.alt}
@@ -48,11 +56,20 @@ export default function Gallery() {
                   className="object-cover transition-transform duration-500 hover:scale-105"
                   sizes="(min-width: 640px) 25vw, 50vw"
                 />
-              </div>
+              </button>
             </Reveal>
           ))}
         </div>
       </div>
+
+      {openIndex !== null && (
+        <GalleryLightbox
+          photos={PHOTOS}
+          index={openIndex}
+          onClose={() => setOpenIndex(null)}
+          onNavigate={setOpenIndex}
+        />
+      )}
     </section>
   );
 }

@@ -2,8 +2,8 @@
 
 import TerraceDivider from './TerraceDivider';
 import Reveal from './Reveal';
+import BookingWidget from './BookingWidget';
 import { useLanguage } from './LanguageProvider';
-import { AIRBNB_URL } from '@/lib/site';
 
 export default function Booking() {
   const { t } = useLanguage();
@@ -21,23 +21,19 @@ export default function Booking() {
           <p className="mx-auto mt-6 max-w-md font-body leading-relaxed text-ink-soft/90">
             {t('book_copy')}
           </p>
+        </Reveal>
 
-          <div className="mt-10 flex flex-col items-center gap-5">
-            <a
-              href={AIRBNB_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-full bg-ink px-8 py-4 eyebrow text-limestone-50 transition-colors hover:bg-copper"
-            >
-              {t('book_cta_airbnb')}
-            </a>
-            <a
-              href="/contact"
-              className="eyebrow text-ink-soft/80 underline-offset-4 hover:underline"
-            >
-              {t('book_cta_contact')}
-            </a>
-          </div>
+        <Reveal delay={100} className="mt-10">
+          <BookingWidget />
+        </Reveal>
+
+        <Reveal delay={150} className="mt-8">
+          <a
+            href="/contact"
+            className="eyebrow text-ink-soft/80 underline-offset-4 hover:underline"
+          >
+            {t('book_cta_contact')}
+          </a>
         </Reveal>
       </div>
     </section>
