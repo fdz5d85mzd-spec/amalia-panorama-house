@@ -27,10 +27,29 @@ const spaceMono = Space_Mono({
   display: 'swap',
 });
 
+const title = 'AmaLia PanoRama House | Πέτρινο αρχοντικό στο Σούνι, Λεμεσός';
+const description =
+  'Ένα πέτρινο σπίτι 150 ετών στο Σούνι-Ζανακιά, αναπαλαιωμένο με σεβασμό στον χαρακτήρα του. Πανοραμική θέα 360°, βεράντα στο ηλιοβασίλεμα, 20 λεπτά από τη Λεμεσό.';
+
 export const metadata: Metadata = {
-  title: 'AmaLia PanoRama House | Πέτρινο αρχοντικό στο Σούνι, Λεμεσός',
-  description:
-    'Ένα πέτρινο σπίτι 150 ετών στο Σούνι-Ζανακιά, αναπαλαιωμένο με σεβασμό στον χαρακτήρα του. Πανοραμική θέα 360°, βεράντα στο ηλιοβασίλεμα, 20 λεπτά από τη Λεμεσό.',
+  metadataBase: new URL('https://amalia-panorama-house.vercel.app'),
+  title,
+  description,
+  openGraph: {
+    title,
+    description,
+    url: '/',
+    siteName: 'AmaLia PanoRama House',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: title }],
+    locale: 'el_GR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title,
+    description,
+    images: ['/og-image.jpg'],
+  },
 };
 
 export default function RootLayout({
