@@ -1,25 +1,46 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useLanguage } from './LanguageProvider';
 
 export default function Hero() {
   const { t } = useLanguage();
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }, []);
 
   return (
     <section
       id="top"
       className="relative flex min-h-[100svh] items-end overflow-hidden"
     >
-      <div className="absolute inset-0 -z-10 animate-[heroKenBurns_20s_ease-out_forwards]">
-        <Image
-          src="/images/IMG_5613.jpg"
-          alt="Πανοραμική θέα προς τη θάλασσα από τους λόφους του Σουνίου"
-          fill
-          priority
-          className="object-cover"
-          sizes="100vw"
-        />
+      <div className="absolute inset-0 -z-10">
+        {reducedMotion ? (
+          <Image
+            src="/images/IMG_5613.jpg"
+            alt="Πανοραμική θέα προς τη θάλασσα από τους λόφους του Σουνίου"
+            fill
+            priority
+            className="object-cover"
+            sizes="100vw"
+          />
+        ) : (
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            poster="/images/IMG_5613.jpg"
+            aria-hidden="true"
+            className="h-full w-full object-cover"
+          >
+            <source src="/videos/hero.mp4" type="video/mp4" />
+          </video>
+        )}
       </div>
       <div
         aria-hidden="true"
