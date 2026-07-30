@@ -2,6 +2,7 @@
 
 import TerraceDivider from './TerraceDivider';
 import { useLanguage } from './LanguageProvider';
+import { CONTACT_EMAIL } from '@/lib/site';
 
 export default function Footer() {
   const { t } = useLanguage();
@@ -23,10 +24,13 @@ export default function Footer() {
         <div>
           <p className="eyebrow mb-4 text-limestone-100/50">{t('footer_nav_title')}</p>
           <ul className="space-y-3 text-sm">
-            <li><a href="#house" className="hover:text-copper-light">{t('nav_house')}</a></li>
-            <li><a href="#rooms" className="hover:text-copper-light">{t('nav_rooms')}</a></li>
-            <li><a href="#gallery" className="hover:text-copper-light">{t('nav_gallery')}</a></li>
-            <li><a href="#contact" className="hover:text-copper-light">{t('nav_contact')}</a></li>
+            <li><a href="/#house" className="hover:text-copper-light">{t('nav_house')}</a></li>
+            <li><a href="/#rooms" className="hover:text-copper-light">{t('nav_rooms')}</a></li>
+            <li><a href="/#gallery" className="hover:text-copper-light">{t('nav_gallery')}</a></li>
+            <li><a href="/about" className="hover:text-copper-light">{t('nav_about')}</a></li>
+            <li><a href="/faq" className="hover:text-copper-light">{t('nav_faq')}</a></li>
+            <li><a href="/reviews" className="hover:text-copper-light">{t('nav_reviews')}</a></li>
+            <li><a href="/contact" className="hover:text-copper-light">{t('nav_contact')}</a></li>
           </ul>
         </div>
 
@@ -44,9 +48,14 @@ export default function Footer() {
           <p className="eyebrow mb-4 text-limestone-100/50">{t('footer_contact_title')}</p>
           <ul className="space-y-3 text-sm text-limestone-100/80">
             <li>{t('footer_host')}</li>
+            <li>
+              <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-copper-light">
+                {CONTACT_EMAIL}
+              </a>
+            </li>
             <li className="pt-2">
               <a
-                href="#book"
+                href="/#book"
                 className="eyebrow inline-block rounded-full border border-limestone-100/30 px-5 py-2 hover:border-copper-light hover:text-copper-light"
               >
                 {t('footer_cta')}

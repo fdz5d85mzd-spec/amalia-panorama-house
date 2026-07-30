@@ -1,29 +1,33 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useLanguage } from './LanguageProvider';
 import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Navigation() {
   const { t } = useLanguage();
+  const pathname = usePathname();
+  const isHome = pathname === '/';
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    if (!isHome) return;
     const onScroll = () => setScrolled(window.scrollY > 40);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [isHome]);
 
-  const solid = scrolled || open;
+  const solid = !isHome || scrolled || open;
 
   const LINKS = [
-    { href: '#house', label: t('nav_house') },
-    { href: '#rooms', label: t('nav_rooms') },
-    { href: '#gallery', label: t('nav_gallery') },
-    { href: '#experiences', label: t('nav_experiences') },
-    { href: '#contact', label: t('nav_contact') },
+    { href: '/#house', label: t('nav_house') },
+    { href: '/#rooms', label: t('nav_rooms') },
+    { href: '/#gallery', label: t('nav_gallery') },
+    { href: '/#experiences', label: t('nav_experiences') },
+    { href: '/contact', label: t('nav_contact') },
   ];
 
   return (
@@ -34,7 +38,7 @@ export default function Navigation() {
     >
       <nav className="container flex h-20 items-center justify-between gap-4">
         <a
-          href="#top"
+          href="/#top"
           className={`font-display text-lg tracking-wide transition-colors duration-500 ${
             solid ? 'text-ink' : 'text-limestone-50'
           }`}
@@ -61,7 +65,7 @@ export default function Navigation() {
             <LanguageSwitcher solid={solid} />
           </div>
           <a
-            href="#book"
+            href="/#book"
             className={`hidden rounded-full border px-5 py-2 eyebrow transition-colors lg:inline-block ${
               solid
                 ? 'border-ink text-ink hover:bg-ink hover:text-limestone-50'
@@ -109,7 +113,7 @@ export default function Navigation() {
             ))}
           </ul>
           <a
-            href="#book"
+            href="/#book"
             onClick={() => setOpen(false)}
             className="eyebrow inline-block self-start rounded-full border border-ink px-5 py-2"
           >
