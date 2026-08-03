@@ -1,11 +1,15 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import TerraceDivider from './TerraceDivider';
 import { useLanguage } from './LanguageProvider';
 import { CONTACT_EMAIL } from '@/lib/site';
 
 export default function Footer() {
   const { t } = useLanguage();
+  const pathname = usePathname();
+
+  if (pathname?.startsWith('/blackjack')) return null;
 
   return (
     <footer className="bg-wine-deep text-limestone-100">

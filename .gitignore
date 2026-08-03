@@ -6,3 +6,4 @@ out
 *.log
 .claude/settings.local.json
 .vercel
+*.tsbuildinfo

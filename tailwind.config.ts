@@ -44,6 +44,13 @@ const config: Config = {
           DEFAULT: '#8CA3B8',
           deep: '#3B4B5C',
         },
+        felt: {
+          900: '#0B2E1F',
+          800: '#123D29',
+          700: '#194C33',
+          600: '#215B3D',
+          line: '#2E6B47',
+        },
       },
       fontFamily: {
         display: ['var(--font-fraunces)', 'serif'],

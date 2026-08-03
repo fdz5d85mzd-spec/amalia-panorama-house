@@ -9,6 +9,7 @@ export default function Navigation() {
   const { t } = useLanguage();
   const pathname = usePathname();
   const isHome = pathname === '/';
+  const hidden = pathname?.startsWith('/blackjack');
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -21,6 +22,8 @@ export default function Navigation() {
   }, [isHome]);
 
   const solid = !isHome || scrolled || open;
+
+  if (hidden) return null;
 
   const LINKS = [
     { href: '/#house', label: t('nav_house') },
