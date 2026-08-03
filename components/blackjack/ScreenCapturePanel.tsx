@@ -31,14 +31,13 @@ export default function ScreenCapturePanel({
   const [rois, setRois] = useState<Roi[]>([]);
   const [sizeKey, setSizeKey] = useState<SizeKey>('M');
   const [scanning, setScanning] = useState(false);
-  const [autoScan, setAutoScan] = useState(false);
+  const [autoScan, setAutoScan] = useState(true);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
 
   const stopCapture = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
     setActive(false);
-    setAutoScan(false);
   }, []);
 
   const startCapture = useCallback(async () => {
@@ -82,6 +81,44 @@ export default function ScreenCapturePanel({
     e.stopPropagation();
     setRois((prev) => prev.filter((r) => r.id !== id));
     setSuggestions((prev) => prev.filter((s) => s.roi.id !== id));
+  };
+
+  const MIN_SIZE = 0.02;
+
+  const handleResizePointerDown = (roi: Roi, e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const container = containerRef.current;
+    if (!container) return;
+    const containerRect = container.getBoundingClientRect();
+    const target = e.currentTarget;
+    target.setPointerCapture(e.pointerId);
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startW = roi.wPct;
+    const startH = roi.hPct;
+
+    const onMove = (moveEvent: PointerEvent) => {
+      const dxPct = (moveEvent.clientX - startX) / containerRect.width;
+      const dyPct = (moveEvent.clientY - startY) / containerRect.height;
+      setRois((prev) =>
+        prev.map((r) =>
+          r.id === roi.id
+            ? {
+                ...r,
+                wPct: clamp(startW + dxPct, MIN_SIZE, 1 - r.xPct),
+                hPct: clamp(startH + dyPct, MIN_SIZE, 1 - r.yPct),
+              }
+            : r
+        )
+      );
+    };
+    const onUp = () => {
+      target.removeEventListener('pointermove', onMove);
+      target.removeEventListener('pointerup', onUp);
+    };
+    target.addEventListener('pointermove', onMove);
+    target.addEventListener('pointerup', onUp);
   };
 
   const scanAll = useCallback(async () => {
@@ -177,6 +214,11 @@ export default function ScreenCapturePanel({
               >
                 ×
               </button>
+              <div
+                onPointerDown={(e) => handleResizePointerDown(roi, e)}
+                className="absolute -bottom-1.5 -right-1.5 h-4 w-4 touch-none cursor-nwse-resize rounded-sm border border-limestone-50 bg-copper-light"
+                aria-label="Αλλαγή μεγέθους πλαισίου"
+              />
             </div>
           ))}
       </div>
@@ -250,8 +292,10 @@ export default function ScreenCapturePanel({
         {active && (
           <p className="text-[11px] leading-relaxed text-limestone-100/45">
             Κάνε κλικ πάνω στο βίντεο για να τοποθετήσεις ένα πλαίσιο πάνω σε κάθε θέση χαρτιού
-            (π.χ. τα χαρτιά του παίκτη, το ανοιχτό χαρτί του dealer). Μετά «Σάρωσε όλα» για αυτόματη
-            αναγνώριση με OCR — η πρώτη σάρωση αργεί λίγα δευτερόλεπτα όσο φορτώνει η μηχανή.
+            (π.χ. τα χαρτιά του παίκτη, το ανοιχτό χαρτί του dealer) — σύρε τη λαβή στην κάτω-δεξιά
+            γωνία κάθε πλαισίου για να αλλάξεις το μέγεθός του. Με ενεργή την αυτόματη σάρωση, κάθε
+            3&Prime; ξανασαρώνει όλα τα πλαίσια για νέα χαρτιά — η πρώτη σάρωση αργεί λίγα δευτερόλεπτα
+            όσο φορτώνει η μηχανή OCR.
           </p>
         )}
       </div>
