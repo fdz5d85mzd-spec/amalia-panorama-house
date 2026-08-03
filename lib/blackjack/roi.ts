@@ -1,9 +1,12 @@
+import type { CardDestination } from './types';
+
 export interface Roi {
   id: string;
   xPct: number; // top-left, 0..1 σχετικά με το container
   yPct: number;
   wPct: number;
   hPct: number;
+  role: CardDestination;
 }
 
 export const ROI_SIZE_PRESETS: Record<'S' | 'M' | 'L', { w: number; h: number }> = {

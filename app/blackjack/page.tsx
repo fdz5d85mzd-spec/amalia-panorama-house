@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useReducer } from 'react';
+import { useEffect, useMemo, useReducer, useState } from 'react';
 import RankPad from '@/components/blackjack/RankPad';
 import Hand from '@/components/blackjack/Hand';
 import StrategyCard from '@/components/blackjack/StrategyCard';
@@ -95,6 +95,7 @@ const STORAGE_KEY = 'blackjack-master-state-v1';
 
 export default function BlackjackPage() {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
+  const [scanResetSignal, setScanResetSignal] = useState(0);
 
   useEffect(() => {
     try {
@@ -148,13 +149,14 @@ export default function BlackjackPage() {
           <p className="eyebrow text-copper-light">Blackjack Master</p>
           <h1 className="font-display text-3xl">Στρατηγική &amp; μέτρηση χαρτιών</h1>
           <p className="mt-1 text-sm text-limestone-100/50">
-            v0.2 — live screen capture, αυτόματη αναγνώριση χαρτιών με OCR (μπάλωσε τα πλαίσια πάνω
-            στις θέσεις των χαρτιών) και χειροκίνητη καταχώρηση ως fallback.
+            v0.3 — δώσε ρόλο σε κάθε πλαίσιο (Εγώ / Dealer / Άλλο) και τα νέα χαρτιά μπαίνουν μόνα
+            τους κάθε 3&Prime, χωρίς κλικ. Χειροκίνητη καταχώρηση παραμένει ως fallback.
           </p>
         </header>
 
         <div className="flex flex-col gap-6">
           <ScreenCapturePanel
+            resetSignal={scanResetSignal}
             onRecognized={(destination, rank) => {
               if (destination === 'player') dispatch({ type: 'ADD_PLAYER', rank });
               else if (destination === 'dealer') dispatch({ type: 'SET_DEALER', rank });
@@ -204,8 +206,14 @@ export default function BlackjackPage() {
           <ShoeSettings
             decks={state.decks}
             onDecksChange={(decks) => dispatch({ type: 'SET_DECKS', decks })}
-            onNewRound={() => dispatch({ type: 'NEW_ROUND' })}
-            onNewShoe={() => dispatch({ type: 'NEW_SHOE' })}
+            onNewRound={() => {
+              dispatch({ type: 'NEW_ROUND' });
+              setScanResetSignal((n) => n + 1);
+            }}
+            onNewShoe={() => {
+              dispatch({ type: 'NEW_SHOE' });
+              setScanResetSignal((n) => n + 1);
+            }}
           />
         </div>
       </div>
