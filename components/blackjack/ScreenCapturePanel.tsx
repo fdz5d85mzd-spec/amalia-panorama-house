@@ -2,43 +2,44 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export default function CameraPanel() {
+export default function ScreenCapturePanel() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [active, setActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [snapshot, setSnapshot] = useState<string | null>(null);
 
-  const stopCamera = useCallback(() => {
+  const stopCapture = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
     setActive(false);
   }, []);
 
-  const startCamera = useCallback(async () => {
+  const startCapture = useCallback(async () => {
     setError(null);
     setSnapshot(null);
-    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
-      setError('Ο browser δεν υποστηρίζει πρόσβαση σε κάμερα (χρειάζεται HTTPS ή localhost).');
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getDisplayMedia) {
+      setError('Ο browser δεν υποστηρίζει screen capture (χρειάζεται HTTPS ή localhost, desktop browser).');
       return;
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' } },
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { frameRate: { ideal: 15 } },
         audio: false,
       });
       streamRef.current = stream;
+      stream.getVideoTracks()[0]?.addEventListener('ended', stopCapture);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
       }
       setActive(true);
     } catch {
-      setError('Δεν δόθηκε πρόσβαση στην κάμερα. Έλεγξε τα δικαιώματα του browser.');
+      setError('Δεν επιλέχθηκε παράθυρο/tab για κοινή χρήση, ή δεν δόθηκε άδεια.');
     }
-  }, []);
+  }, [stopCapture]);
 
-  useEffect(() => stopCamera, [stopCamera]);
+  useEffect(() => stopCapture, [stopCapture]);
 
   const takeSnapshot = () => {
     const video = videoRef.current;
@@ -59,12 +60,12 @@ export default function CameraPanel() {
           ref={videoRef}
           playsInline
           muted
-          className={`h-full w-full object-cover ${active ? '' : 'hidden'}`}
+          className={`h-full w-full object-contain ${active ? '' : 'hidden'}`}
         />
         {!active && (
           <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
             <p className="text-sm text-limestone-100/60">
-              Άνοιξε την κάμερα του κινητού για να βλέπεις το τραπέζι ζωντανά.
+              Ξεκίνα screen capture και επίλεξε το tab ή το παράθυρο όπου παίζει το live-dealer stream.
             </p>
             {error && <p className="text-xs text-copper-light">{error}</p>}
           </div>
@@ -75,10 +76,10 @@ export default function CameraPanel() {
           {!active ? (
             <button
               type="button"
-              onClick={startCamera}
+              onClick={startCapture}
               className="rounded-lg bg-copper px-4 py-2 text-sm font-semibold text-limestone-50 hover:bg-copper-dark"
             >
-              Άνοιγμα κάμερας
+              Έναρξη screen capture
             </button>
           ) : (
             <>
@@ -91,10 +92,10 @@ export default function CameraPanel() {
               </button>
               <button
                 type="button"
-                onClick={stopCamera}
+                onClick={stopCapture}
                 className="rounded-lg border border-limestone-100/30 px-4 py-2 text-sm text-limestone-50 hover:bg-felt-800"
               >
-                Κλείσιμο
+                Διακοπή
               </button>
             </>
           )}
@@ -102,15 +103,15 @@ export default function CameraPanel() {
         {snapshot && (
           <img
             src={snapshot}
-            alt="Στιγμιότυπο τραπεζιού"
+            alt="Στιγμιότυπο παιχνιδιού"
             className="h-12 w-16 rounded object-cover ring-1 ring-limestone-100/30"
           />
         )}
       </div>
       <p className="border-t border-felt-line bg-felt-900/60 px-3 py-2 text-[11px] leading-relaxed text-limestone-100/45">
-        Αυτόματη αναγνώριση χαρτιών από την κάμερα δεν έχει ενεργοποιηθεί ακόμα —
-        αυτό είναι το επόμενο βήμα. Προς το παρόν χρησιμοποίησε την κάμερα για να
-        βλέπεις το τραπέζι και πρόσθεσε τα χαρτιά χειροκίνητα παρακάτω.
+        Αυτόματη αναγνώριση χαρτιών από το frame δεν έχει ενεργοποιηθεί ακόμα — αυτό
+        είναι το επόμενο βήμα. Προς το παρόν το screen capture σου δείχνει live το
+        παιχνίδι δίπλα στη στρατηγική, και πρόσθεσε τα χαρτιά χειροκίνητα παρακάτω.
       </p>
     </div>
   );

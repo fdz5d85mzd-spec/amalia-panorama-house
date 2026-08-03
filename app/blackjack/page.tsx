@@ -6,7 +6,7 @@ import Hand from '@/components/blackjack/Hand';
 import StrategyCard from '@/components/blackjack/StrategyCard';
 import CountDisplay from '@/components/blackjack/CountDisplay';
 import ShoeSettings from '@/components/blackjack/ShoeSettings';
-import CameraPanel from '@/components/blackjack/CameraPanel';
+import ScreenCapturePanel from '@/components/blackjack/ScreenCapturePanel';
 import { computeStrategy, handValue } from '@/lib/blackjack/strategy';
 import { hiLoTag, summarizeCount } from '@/lib/blackjack/counting';
 import type { Rank } from '@/lib/blackjack/types';
@@ -148,12 +148,13 @@ export default function BlackjackPage() {
           <p className="eyebrow text-copper-light">Blackjack Master</p>
           <h1 className="font-display text-3xl">Στρατηγική &amp; μέτρηση χαρτιών</h1>
           <p className="mt-1 text-sm text-limestone-100/50">
-            v0.1 — χειροκίνητη καταχώρηση χαρτιών, κάμερα ζωντανά, αναγνώριση χαρτιών έρχεται σε επόμενο βήμα.
+            v0.1 — χειροκίνητη καταχώρηση χαρτιών, live screen capture του παιχνιδιού, αυτόματη
+            αναγνώριση χαρτιών έρχεται σε επόμενο βήμα.
           </p>
         </header>
 
         <div className="flex flex-col gap-6">
-          <CameraPanel />
+          <ScreenCapturePanel />
 
           <StrategyCard result={strategy} />
 

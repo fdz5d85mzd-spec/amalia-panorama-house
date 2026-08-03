@@ -27,6 +27,11 @@ export default function CountDisplay({ summary }: { summary: CountSummary }) {
           Πρόταση στοιχήματος: {summary.betUnits}×μονάδα
         </span>
       </div>
+      <p className="mt-2 text-[11px] leading-relaxed text-limestone-100/40">
+        Το true count δείχνει πόσο ευνοϊκή είναι στατιστικά η τράπουλα που απομένει,
+        όχι ποιο θα είναι το επόμενο χαρτί. Ισχύει μόνο σε παιχνίδι με πραγματική,
+        φυσική τράπουλα (π.χ. live-dealer) — όχι σε ψηφιακά/RNG παιχνίδια.
+      </p>
     </div>
   );
 }
