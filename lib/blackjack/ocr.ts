@@ -12,7 +12,10 @@ async function getWorker(): Promise<TesseractWorker> {
       const worker = await createWorker('eng');
       await worker.setParameters({
         tessedit_char_whitelist: 'AJQK0123456789',
-        tessedit_pageseg_mode: '10' as PSM, // SINGLE_CHAR-ish σάρωση μικρής περιοχής
+        // SINGLE_LINE (7): περιμένει μία μικρή γραμμή κειμένου (π.χ. "10", "A")
+        // αντί για SINGLE_CHAR που απαιτούσε ΑΚΡΙΒΩΣ έναν χαρακτήρα και
+        // απέτυχε σχεδόν πάντα σε ranks με 2 ψηφία ή δίπλα σε σύμβολο φιγούρας.
+        tessedit_pageseg_mode: '7' as PSM,
       });
       return worker;
     })();
@@ -44,7 +47,37 @@ export function normalizeToRank(rawInput: string): Rank | null {
   return null;
 }
 
+// Ασπρόμαυρο + τέντωμα αντίθεσης πάνω στο ίδιο canvas — βοηθά σημαντικά το
+// OCR σε πλάνα με έγχρωμο φόντο (πράσινο τσόχα) ή χαμηλή αντίθεση, χωρίς τον
+// κίνδυνο ενός λάθος-κατεύθυνσης binarize threshold.
+function boostContrast(canvas: HTMLCanvasElement): void {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const { width, height } = canvas;
+  if (width === 0 || height === 0) return;
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const { data } = imageData;
+  const gray = new Uint8ClampedArray(width * height);
+  let min = 255;
+  let max = 0;
+  for (let i = 0, p = 0; i < data.length; i += 4, p += 1) {
+    const g = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    gray[p] = g;
+    if (g < min) min = g;
+    if (g > max) max = g;
+  }
+  const range = Math.max(max - min, 1);
+  for (let i = 0, p = 0; i < data.length; i += 4, p += 1) {
+    const stretched = ((gray[p] - min) / range) * 255;
+    data[i] = stretched;
+    data[i + 1] = stretched;
+    data[i + 2] = stretched;
+  }
+  ctx.putImageData(imageData, 0, 0);
+}
+
 export async function recognizeRankFromCanvas(canvas: HTMLCanvasElement): Promise<RecognitionResult> {
+  boostContrast(canvas);
   const worker = await getWorker();
   const { data } = await worker.recognize(canvas);
   const raw = data.text.trim();

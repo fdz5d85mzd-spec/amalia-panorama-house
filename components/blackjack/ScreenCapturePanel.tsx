@@ -26,6 +26,8 @@ interface ScanLogEntry {
   raw: string;
   confidence: number;
   committed: boolean;
+  thumbnail: string;
+  error?: string;
 }
 
 export default function ScreenCapturePanel({
@@ -47,6 +49,7 @@ export default function ScreenCapturePanel({
   const [scanning, setScanning] = useState(false);
   const [autoScan, setAutoScan] = useState(true);
   const [scanLog, setScanLog] = useState<ScanLogEntry[]>([]);
+  const [ocrError, setOcrError] = useState<string | null>(null);
 
   // Μνήμη ανά πλαίσιο ώστε ένα χαρτί που δεν άλλαξε να μην ξαναπροστίθεται
   // σε κάθε σάρωση. Ένα νέο rank πρέπει να διαβαστεί 2 φορές στη σειρά πριν
@@ -164,6 +167,7 @@ export default function ScreenCapturePanel({
     const container = containerRef.current;
     if (!video || !container || rois.length === 0 || scanning) return;
     setScanning(true);
+    let firstError: string | null = null;
     try {
       const containerRect = container.getBoundingClientRect();
       const log: ScanLogEntry[] = [];
@@ -183,11 +187,17 @@ export default function ScreenCapturePanel({
         ctx.drawImage(video, rect.sx, rect.sy, rect.sw, rect.sh, 0, 0, canvas.width, canvas.height);
 
         let result: RecognitionResult;
+        let entryError: string | undefined;
         try {
           result = await recognizeRankFromCanvas(canvas);
-        } catch {
+        } catch (err) {
           result = { rank: null, raw: '', confidence: 0 };
+          entryError = err instanceof Error ? err.message : String(err);
+          firstError = firstError ?? entryError;
         }
+        // thumbnail ΜΕΤΑ την αναγνώριση, ώστε να δείχνει ακριβώς τι "είδε" το OCR
+        // (το recognizeRankFromCanvas κάνει ασπρόμαυρο+αντίθεση πάνω στο canvas)
+        const thumbnail = canvas.toDataURL('image/png');
 
         let committed = false;
         if (result.rank) {
@@ -207,9 +217,19 @@ export default function ScreenCapturePanel({
             }
           }
         }
-        log.push({ roiId: roi.id, role: roi.role, rank: result.rank, raw: result.raw, confidence: result.confidence, committed });
+        log.push({
+          roiId: roi.id,
+          role: roi.role,
+          rank: result.rank,
+          raw: result.raw,
+          confidence: result.confidence,
+          committed,
+          thumbnail,
+          error: entryError,
+        });
       }
       setScanLog(log);
+      setOcrError(firstError);
     } finally {
       setScanning(false);
     }
@@ -372,6 +392,13 @@ export default function ScreenCapturePanel({
         )}
       </div>
 
+      {ocrError && (
+        <div className="border-t border-wine/60 bg-wine/20 p-3 text-[11px] text-limestone-50">
+          Πρόβλημα στη μηχανή OCR: {ocrError} — έλεγξε τη σύνδεση internet (η πρώτη φόρτωση κατεβάζει
+          το μοντέλο) ή άνοιξε το console του browser (F12) για λεπτομέρειες.
+        </div>
+      )}
+
       {scanLog.length > 0 && (
         <div className="flex flex-wrap gap-2 border-t border-felt-line bg-felt-900/60 p-3">
           {scanLog.map((entry) => (
@@ -379,6 +406,12 @@ export default function ScreenCapturePanel({
               key={entry.roiId}
               className="flex items-center gap-1.5 rounded-lg border border-limestone-100/15 bg-felt-800 px-2 py-1 text-[11px]"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={entry.thumbnail}
+                alt="Ό,τι είδε το OCR σε αυτό το πλαίσιο"
+                className="h-8 w-auto rounded border border-limestone-100/20 bg-white"
+              />
               <span className={`rounded px-1.5 py-0.5 text-[10px] text-limestone-50 ${ROLE_META[entry.role].chipClass}`}>
                 {ROLE_META[entry.role].short}
               </span>
@@ -387,8 +420,12 @@ export default function ScreenCapturePanel({
                   {entry.rank}
                   <span className="text-limestone-100/40"> {Math.round(entry.confidence)}%</span>
                 </span>
+              ) : entry.error ? (
+                <span className="text-copper-light">σφάλμα OCR</span>
               ) : (
-                <span className="text-limestone-100/40">δεν αναγνωρίστηκε</span>
+                <span className="text-limestone-100/40">
+                  δεν αναγνωρίστηκε{entry.raw ? ` ('${entry.raw}')` : ''}
+                </span>
               )}
               {entry.committed && <span className="text-emerald-400">✓ προστέθηκε</span>}
             </div>
