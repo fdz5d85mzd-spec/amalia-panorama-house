@@ -148,13 +148,19 @@ export default function BlackjackPage() {
           <p className="eyebrow text-copper-light">Blackjack Master</p>
           <h1 className="font-display text-3xl">Στρατηγική &amp; μέτρηση χαρτιών</h1>
           <p className="mt-1 text-sm text-limestone-100/50">
-            v0.1 — χειροκίνητη καταχώρηση χαρτιών, live screen capture του παιχνιδιού, αυτόματη
-            αναγνώριση χαρτιών έρχεται σε επόμενο βήμα.
+            v0.2 — live screen capture, αυτόματη αναγνώριση χαρτιών με OCR (μπάλωσε τα πλαίσια πάνω
+            στις θέσεις των χαρτιών) και χειροκίνητη καταχώρηση ως fallback.
           </p>
         </header>
 
         <div className="flex flex-col gap-6">
-          <ScreenCapturePanel />
+          <ScreenCapturePanel
+            onRecognized={(destination, rank) => {
+              if (destination === 'player') dispatch({ type: 'ADD_PLAYER', rank });
+              else if (destination === 'dealer') dispatch({ type: 'SET_DEALER', rank });
+              else dispatch({ type: 'ADD_OTHER', rank });
+            }}
+          />
 
           <StrategyCard result={strategy} />
 
