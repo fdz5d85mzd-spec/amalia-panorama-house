@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useReducer, useState } from 'react';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import RankPad from '@/components/blackjack/RankPad';
 import Hand from '@/components/blackjack/Hand';
 import StrategyCard from '@/components/blackjack/StrategyCard';
@@ -142,6 +142,27 @@ export default function BlackjackPage() {
     return computeStrategy(state.playerCards, state.dealerCards[0]);
   }, [state.playerCards, state.dealerCards]);
 
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const lastSpokenRef = useRef<string | null>(null);
+
+  const speak = (text: string) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'el-GR';
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  };
+
+  useEffect(() => {
+    if (!voiceEnabled || !strategy) return;
+    const key = `${strategy.action}|${state.playerCards.join(',')}|${state.dealerCards.join(',')}`;
+    if (lastSpokenRef.current === key) return;
+    lastSpokenRef.current = key;
+    const phrase = strategy.label.includes('—') ? strategy.label.split('—')[1].trim() : strategy.label;
+    speak(phrase);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [strategy, voiceEnabled]);
+
   return (
     <div className="min-h-screen bg-felt-900 pb-16 pt-8 text-limestone-50">
       <div className="container max-w-2xl">
@@ -149,9 +170,26 @@ export default function BlackjackPage() {
           <p className="eyebrow text-copper-light">Blackjack Master</p>
           <h1 className="font-display text-3xl">Στρατηγική &amp; μέτρηση χαρτιών</h1>
           <p className="mt-1 text-sm text-limestone-100/50">
-            v0.3 — δώσε ρόλο σε κάθε πλαίσιο (Εγώ / Dealer / Άλλο) και τα νέα χαρτιά μπαίνουν μόνα
-            τους κάθε 3&Prime, χωρίς κλικ. Χειροκίνητη καταχώρηση παραμένει ως fallback.
+            v0.4 — τώρα σου μιλάει φωναχτά: λέει «τράβα χαρτί» / «μείνε» κ.λπ. μόλις αναγνωρίσει τα
+            χαρτιά, χωρίς να χρειάζεται να διαβάζεις οθόνη.
           </p>
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <label className="flex items-center gap-2 text-sm text-limestone-50">
+              <input
+                type="checkbox"
+                checked={voiceEnabled}
+                onChange={(e) => setVoiceEnabled(e.target.checked)}
+              />
+              🔊 Να μου μιλάει
+            </label>
+            <button
+              type="button"
+              onClick={() => speak('Η φωνή δουλεύει.')}
+              className="rounded-full border border-limestone-100/30 px-4 py-1.5 text-sm text-limestone-50 hover:bg-felt-800"
+            >
+              Δοκιμή ήχου
+            </button>
+          </div>
         </header>
 
         <div className="flex flex-col gap-6">
